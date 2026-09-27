@@ -1,0 +1,48 @@
+@{
+    ViewData["Title"] = "Home Page";
+}
+
+<div class="text-center py-4">
+    <h1 class="display-3 fw-bold mb-4">Welcome to <span class="text-primary">AthleteFitness</span></h1>
+    
+    <!-- Why Use This App Section -->
+    <div class="row align-items-center mt-5 mb-5 text-start">
+        <div class="col-md-6 mb-4">
+            <img src="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=800&auto=format&fit=crop&q=60" alt="Gym Workout" class="img-fluid rounded shadow-lg" style="border: 2px solid rgba(0, 255, 136, 0.3);" />
+        </div>
+        <div class="col-md-6 mb-4">
+            <h3 class="fw-bold mb-3">Why Should You Use This App?</h3>
+            <p class="text-secondary fs-5">
+                Staying consistent with your fitness journey is difficult. AthleteFitness makes it easy by doing all the planning for you. 
+                Our app is designed to eliminate the guesswork from your daily routine so you can focus 100% on execution.
+            </p>
+            <ul class="text-secondary fs-5 mt-3">
+                <li class="mb-3"><strong class="text-white">Gym & Home Workouts:</strong> Instantly switch between Gym equipment workouts or No-Equipment Home workouts based on your environment.</li>
+                <li class="mb-3"><strong class="text-white">Leveled Intensity:</strong> Workouts automatically scale to your exact fitness level: Beginner, Intermediate, or Pro.</li>
+                <li class="mb-3"><strong class="text-white">Smart Reminders:</strong> Receive automated notifications reminding you to drink water and eat your scheduled meals.</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- How It Is Useful Section -->
+    <div class="row align-items-center mb-5 text-start flex-row-reverse">
+        <div class="col-md-6 mb-4">
+            <img src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&auto=format&fit=crop&q=60" alt="Running Outdoors" class="img-fluid rounded shadow-lg" style="border: 2px solid rgba(0, 255, 136, 0.3);" />
+        </div>
+        <div class="col-md-6 mb-4">
+            <h3 class="fw-bold mb-3">Your Complete Fitness Hub</h3>
+            <p class="text-secondary fs-5">
+                Nutrition is 80% of the battle. AthleteFitness provides a complete <strong>Authentic Indian Diet Plan</strong>. Choose between Veg and Non-Veg options, perfectly split into 4 daily meals (Breakfast, Lunch, Evening Snack, Dinner).
+            </p>
+            <p class="text-secondary fs-5 mt-3">
+                Stop using multiple apps. We combine your workout timer, diet plan, hydration tracker, and daily consistency streaks into one seamless dashboard!
+            </p>
+        </div>
+    </div>
+
+    <div class="mt-5 pb-5">
+        <a asp-controller="Account" asp-action="Login" class="btn btn-primary btn-lg px-5 py-3 fw-bold fs-4 rounded-pill shadow" style="transition: transform 0.2s;">
+            Get Started
+        </a>
+    </div>
+</div>

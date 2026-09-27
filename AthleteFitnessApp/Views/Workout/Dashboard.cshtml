@@ -1,0 +1,92 @@
+@model AthleteFitnessApp.Models.User
+@{ ViewData["Title"] = "Dashboard"; }
+
+<div class="container mt-4">
+    <h2 class="fw-bold mb-4">Welcome, <span class="text-primary">@Model.Username!</span></h2>
+    <div class="row my-4">
+        <div class="col-md-6 mb-3">
+            <div class="card p-4 h-100 text-center border-0" style="background: rgba(255,255,255,0.02);">
+                <h4 class="text-warning mb-3">🔥 Daily Streak</h4>
+                <h1 class="display-4 fw-bold"><span id="dashboardStreak">@Model.DailyStreak</span> <span class="fs-4 text-muted">Days</span></h1>
+            </div>
+        </div>
+        <div class="col-md-6 mb-3">
+            <div class="card p-4 h-100 text-center border-0" style="background: rgba(255,255,255,0.02);">
+                <h4 class="text-info mb-3">📊 Progress Tracker</h4>
+                <div style="position: relative; height: 100px; width: 100%;">
+                    <canvas id="progressChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card p-5 text-center border-0 mt-3" style="background: rgba(0, 255, 136, 0.05);">
+        <h3 class="fw-bold mb-3">⚡ Generate Personal Workout</h3>
+        <p class="mb-4 text-muted fs-5">Pick your fitness level and instantly generate your personalized workout and diet plan!</p>
+        <a asp-action="LevelSelection" class="btn btn-lg btn-primary px-5">Generate</a>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            let totalWorkouts = @Model.TotalWorkoutsCompleted;
+
+            // Generate mock historical data to create a graph curve
+            let historicalData = [
+                Math.max(0, totalWorkouts - 5),
+                Math.max(0, totalWorkouts - 4),
+                Math.max(0, totalWorkouts - 3),
+                Math.max(0, totalWorkouts - 2),
+                Math.max(0, totalWorkouts - 1),
+                totalWorkouts
+            ];
+
+            const ctx = document.getElementById('progressChart').getContext('2d');
+            
+            let gradient = ctx.createLinearGradient(0, 0, 0, 100);
+            gradient.addColorStop(0, 'rgba(0, 255, 136, 0.5)');
+            gradient.addColorStop(1, 'rgba(0, 255, 136, 0)');
+
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5', 'Today'],
+                    datasets: [{
+                        label: 'Workouts Completed',
+                        data: historicalData,
+                        borderColor: '#00ff88',
+                        backgroundColor: gradient,
+                        borderWidth: 3,
+                        pointBackgroundColor: '#000',
+                        pointBorderColor: '#00ff88',
+                        pointBorderWidth: 2,
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: 'rgba(0,0,0,0.8)',
+                            titleColor: '#00ff88',
+                            bodyColor: '#fff',
+                            displayColors: false,
+                        }
+                    },
+                    scales: {
+                        x: { display: false },
+                        y: { display: false, min: Math.max(0, totalWorkouts - 6), suggestedMax: totalWorkouts + 1 }
+                    },
+                    layout: { padding: { top: 10, bottom: 5, left: 10, right: 10 } }
+                }
+            });
+        });
+    </script>
+}

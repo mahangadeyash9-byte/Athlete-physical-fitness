@@ -1,0 +1,103 @@
+@model IEnumerable<AthleteFitnessApp.Models.User>
+@{
+    ViewData["Title"] = "Admin Panel";
+}
+
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-5">
+        <h1 class="display-4 fw-bold mb-0">👑 Admin <span class="text-success">Dashboard</span></h1>
+        <a asp-controller="Workout" asp-action="Dashboard" class="btn btn-outline-light rounded-pill px-4">Back to Dashboard</a>
+    </div>
+
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="card bg-dark border-0 shadow-sm rounded-4 overflow-hidden">
+                <div class="card-header bg-black border-bottom border-primary border-2 py-3">
+                    <h4 class="mb-0 text-white"><i class="fas fa-bell text-primary me-2"></i> Quick Actions: Broadcast Notifications</h4>
+                </div>
+                <div class="card-body">
+                    <p class="text-secondary mb-4">Trigger manual push notifications to all active athletes. (Useful for presentation/demonstration)</p>
+                    <div class="d-flex flex-wrap gap-3">
+                        <button class="btn btn-info px-4 fw-bold text-dark" onclick="triggerNotification('Hydration Reminder', 'Don\'t forget to drink water! 💧 (Manual Broadcast)', true)">
+                            💧 Send Hydration Reminder
+                        </button>
+                        <button class="btn btn-warning px-4 fw-bold text-dark" onclick="triggerNotification('Diet Reminder', 'Time for Breakfast! 🥞 (Manual Broadcast)', false)">
+                            🥞 Send Breakfast Reminder
+                        </button>
+                        <button class="btn btn-success px-4 fw-bold" onclick="triggerNotification('Diet Reminder', 'Time for Lunch! 🥗 (Manual Broadcast)', false)">
+                            🥗 Send Lunch Reminder
+                        </button>
+                        <button class="btn btn-danger px-4 fw-bold" onclick="triggerNotification('Diet Reminder', 'Time for Dinner! 🍲 (Manual Broadcast)', false)">
+                            🍲 Send Dinner Reminder
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function triggerNotification(title, message, isHydration) {
+            const data = { title: title, message: message, isHydration: isHydration, timestamp: new Date().getTime() };
+            localStorage.setItem('AdminNotification', JSON.stringify(data));
+            // Show it on the admin page too
+            if (typeof showNotification === 'function') {
+                showNotification(title, message, isHydration);
+            }
+        }
+    </script>
+
+    <div class="card bg-dark border-0 shadow-lg rounded-4 overflow-hidden mb-5">
+        <div class="card-header bg-black border-bottom border-success border-2 py-3">
+            <h4 class="mb-0 text-white"><i class="fas fa-users text-success me-2"></i> Member Consistency Tracker</h4>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-dark table-hover mb-0 align-middle">
+                    <thead class="table-black">
+                        <tr>
+                            <th class="px-4 py-3">ID</th>
+                            <th class="px-4 py-3">Username</th>
+                            <th class="px-4 py-3">Email</th>
+                            <th class="px-4 py-3 text-center">Daily Streak</th>
+                            <th class="px-4 py-3 text-center">Total Workouts</th>
+                            <th class="px-4 py-3">Last Active</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var user in Model)
+                        {
+                            <tr>
+                                <td class="px-4 py-3 text-secondary">#@user.Id</td>
+                                <td class="px-4 py-3 fw-bold">
+                                    @if(user.Email == "admin@admin.com")
+                                    {
+                                        <span class="badge bg-success me-2">ADMIN</span>
+                                    }
+                                    @user.Username
+                                </td>
+                                <td class="px-4 py-3 text-light">@user.Email</td>
+                                <td class="px-4 py-3 text-center">
+                                    <h5 class="mb-0 text-warning">
+                                        <i class="fas fa-fire me-1"></i> @user.DailyStreak
+                                    </h5>
+                                </td>
+                                <td class="px-4 py-3 text-center">
+                                    <h5 class="mb-0 text-info">
+                                        <i class="fas fa-dumbbell me-1"></i> @user.TotalWorkoutsCompleted
+                                    </h5>
+                                </td>
+                                <td class="px-4 py-3 text-secondary">
+                                    @(user.LastWorkoutDate?.ToString("MMM dd, yyyy") ?? "Never")
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="card-footer bg-black border-0 py-3">
+            <small class="text-secondary">Total Members: @Model.Count()</small>
+        </div>
+    </div>
+</div>

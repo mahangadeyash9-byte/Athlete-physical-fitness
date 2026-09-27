@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+@using Microsoft.AspNetCore.Http
+@{
+    var userEmail = Context.Session.GetString("UserEmail");
+}
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - AthleteFitnessApp</title>
+    <script type="importmap"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/AthleteFitnessApp.styles.css" asp-append-version="true" />
+</head>
+<body>
+    <header>
+        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-dark border-bottom box-shadow mb-4 sticky-top">
+            <div class="container-fluid">
+                <a class="navbar-brand text-primary fw-bold fs-4" asp-area="" asp-controller="Home" asp-action="Index">⚡ AthleteFitness</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+                        aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+                    <ul class="navbar-nav flex-grow-1">
+                        <li class="nav-item">
+                            <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-area="" asp-controller="Workout" asp-action="Dashboard">Dashboard</a>
+                        </li>
+                        @if (userEmail == "admin@admin.com")
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-success fw-bold" asp-area="" asp-controller="Workout" asp-action="Admin">👑 Admin Panel</a>
+                            </li>
+                        }
+                        <li class="nav-item">
+                            <a class="nav-link" asp-area="" asp-controller="Account" asp-action="Login">Login</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+    <div class="container">
+        <main role="main" class="pb-3">
+            @RenderBody()
+        </main>
+    </div>
+
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+
+    <!-- Global Notification System -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1100">
+        <div id="adminToast" class="toast align-items-center text-white bg-primary border-0" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="10000">
+            <div class="d-flex">
+                <div class="toast-body">
+                    <strong class="me-2" id="toastTitle">Admin Notification</strong><br />
+                    <span id="toastMessage">Message</span>
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showNotification(title, message, isHydration = false) {
+            document.getElementById('toastTitle').innerText = title;
+            document.getElementById('toastMessage').innerText = message;
+            
+            let toastEl = document.getElementById('adminToast');
+            toastEl.className = 'toast align-items-center text-white border-0 ' + (isHydration ? 'bg-info' : 'bg-success');
+            
+            let toast = new bootstrap.Toast(toastEl);
+            toast.show();
+
+            // Save to history for the UI Notification Column
+            let history = JSON.parse(localStorage.getItem('AppNotificationsHistory') || '[]');
+            history.unshift({ title: title, message: message, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) });
+            if (history.length > 15) history.pop();
+            localStorage.setItem('AppNotificationsHistory', JSON.stringify(history));
+
+            if (typeof renderNotifications === 'function') {
+                renderNotifications();
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {
+            // 1. Cross-tab listening for Admin manual triggers
+            window.addEventListener('storage', function(e) {
+                if (e.key === 'AdminNotification' && e.newValue) {
+                    let data = JSON.parse(e.newValue);
+                    showNotification(data.title, data.message, data.isHydration);
+                    localStorage.removeItem('AdminNotification'); // clean up
+                }
+            });
+
+            // 2. Automated Scheduled Diet Notifications
+            setInterval(() => {
+                let now = new Date();
+                let hours = now.getHours();
+                let minutes = now.getMinutes();
+                let seconds = now.getSeconds();
+
+                // Check only at the 0th minute and 0th second to avoid spamming
+                if (minutes === 0 && seconds === 0) {
+                    if (hours === 8) showNotification("Diet Reminder", "It's 8:00 AM! Time for Breakfast 🥞");
+                    else if (hours === 13) showNotification("Diet Reminder", "It's 1:00 PM! Time for Lunch 🥗");
+                    else if (hours === 17) showNotification("Diet Reminder", "It's 5:00 PM! Time for Evening Snack 🥪");
+                    else if (hours === 20) showNotification("Diet Reminder", "It's 8:00 PM! Time for Dinner 🍲");
+                }
+            }, 1000); // Check every second
+
+            // 3. Automated Hydration Reminder every 3 hours (10800000 ms)
+            setInterval(() => {
+                showNotification("Hydration Reminder", "It's been 3 hours. Please drink a glass of water! 💧", true);
+            }, 3 * 60 * 60 * 1000);
+        });
+    </script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

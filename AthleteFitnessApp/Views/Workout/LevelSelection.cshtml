@@ -1,0 +1,119 @@
+@model AthleteFitnessApp.Models.User
+@{
+    ViewData["Title"] = "Select Your Level";
+}
+
+<div class="container mt-5">
+
+    <!-- Personal Information Form -->
+    <div class="card border-0 mb-5 p-4 shadow-sm" style="background: rgba(0, 0, 0, 0.02);">
+        <h3 class="fw-bold mb-4">Personal Information</h3>
+        <form asp-action="SavePersonalInfo" method="post" class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label">Weight (kg)</label>
+                <input type="number" step="0.1" name="weight" class="form-control" value="@Model?.Weight" />
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Height (cm)</label>
+                <input type="number" step="0.1" name="height" class="form-control" value="@Model?.Height" />
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Age</label>
+                <input type="number" name="age" class="form-control" value="@Model?.Age" />
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Goal of Workout</label>
+                <select name="goal" class="form-select">
+                    <option value="" selected="@(string.IsNullOrEmpty(Model?.Goal))">Select Goal...</option>
+                    <option value="Weight Loss" selected="@(Model?.Goal == "Weight Loss")">Weight Loss</option>
+                    <option value="Muscle Gain" selected="@(Model?.Goal == "Muscle Gain")">Muscle Gain</option>
+                    <option value="Endurance" selected="@(Model?.Goal == "Endurance")">Endurance</option>
+                    <option value="Maintain Fitness" selected="@(Model?.Goal == "Maintain Fitness")">Maintain Fitness</option>
+                </select>
+            </div>
+            <div class="col-12 mt-4 text-end">
+                <button type="submit" class="btn btn-primary px-4">Save Information</button>
+            </div>
+        </form>
+    </div>
+
+    <hr class="mb-5" />
+
+    <div class="text-center mb-5">
+        <h1 class="fw-bold mb-3">Select Your <span class="text-primary">Level</span></h1>
+        <p class="text-muted fs-5">
+            Choose the level that matches your fitness journey.
+        </p>
+    </div>
+
+    <div class="row">
+
+        <!-- Beginner Card -->
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 border-0" style="background: rgba(13, 202, 240, 0.05); box-shadow: 0 4px 20px rgba(13, 202, 240, 0.1);">
+                <div class="card-body text-center d-flex flex-column">
+                    <h2 class="text-info mb-4">🌱 Beginner</h2>
+                    <p class="fw-bold mb-3">
+                        Perfect for new beginners.<br />
+                        Start your fitness journey.
+                    </p>
+                    <p class="text-muted mb-4 flex-grow-1">
+                        35 Min Workout / 45 Sec Rest
+                    </p>
+                    <a asp-controller="Workout"
+                       asp-action="Hub"
+                       asp-route-level="Beginner"
+                       class="btn btn-outline-info w-100 py-2 fw-bold">
+                        Select Beginner
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Intermediate Card -->
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 border-0" style="background: rgba(255, 193, 7, 0.05); box-shadow: 0 4px 20px rgba(255, 193, 7, 0.1);">
+                <div class="card-body text-center d-flex flex-column">
+                    <h2 class="text-warning mb-4">⚡ Intermediate</h2>
+                    <p class="fw-bold mb-3">
+                        Increase strength and endurance.<br />
+                        For those with some experience.
+                    </p>
+                    <p class="text-muted mb-4 flex-grow-1">
+                        45 Min Workout / 30 Sec Rest
+                    </p>
+                    <a asp-controller="Workout"
+                       asp-action="Hub"
+                       asp-route-level="Intermediate"
+                       class="btn btn-outline-warning w-100 py-2 fw-bold">
+                        Select Intermediate
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pro Card -->
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 border-0" style="background: rgba(220, 53, 69, 0.05); box-shadow: 0 4px 20px rgba(220, 53, 69, 0.1);">
+                <div class="card-body text-center d-flex flex-column">
+                    <h2 class="text-danger mb-4">🔥 Pro</h2>
+                    <p class="fw-bold mb-3">
+                        High intensity training for athletes.<br />
+                        Maximum performance workouts.
+                    </p>
+                    <p class="text-muted mb-4 flex-grow-1">
+                        60 Min Workout / 15 Sec Rest
+                    </p>
+                    <a asp-controller="Workout"
+                       asp-action="Hub"
+                       asp-route-level="Pro"
+                       class="btn btn-outline-danger w-100 py-2 fw-bold">
+                        Select Pro
+                    </a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</div>

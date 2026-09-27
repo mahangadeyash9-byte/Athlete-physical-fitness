@@ -1,0 +1,26 @@
+@model AthleteFitnessApp.Models.LoginViewModel
+@{ ViewData["Title"] = "Login"; }
+
+<div class="container mt-5" style="max-width: 450px;">
+    <div class="text-center mb-4">
+        <h2 class="fw-bold mb-3">Welcome <span class="text-primary">Back</span></h2>
+        <p class="text-muted">Sign in to continue your fitness journey</p>
+    </div>
+    <div class="card p-5 border-0 shadow-lg" style="background: rgba(255,255,255,0.02); backdrop-filter: blur(10px);">
+        <form asp-action="Login" method="post">
+            <div class="mb-4">
+                <label class="form-label text-muted fw-bold">Email Address</label>
+                <input asp-for="Email" class="form-control form-control-lg bg-dark text-white border-secondary" required />
+            </div>
+            <div class="mb-4">
+                <label class="form-label text-muted fw-bold">Password</label>
+                <input asp-for="Password" type="password" class="form-control form-control-lg bg-dark text-white border-secondary" required />
+            </div>
+            <button type="submit" class="btn btn-primary btn-lg w-100 mt-2 mb-4">Sign In</button>
+        </form>
+        <div class="text-center">
+            <p class="text-muted mb-3">Don't have an account?</p>
+            <a asp-action="Register" class="btn btn-outline-secondary w-100">Create New Account</a>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,522 @@
+@{
+    var level = Context.Request.Query["level"].ToString();
+    if (string.IsNullOrEmpty(level)) { level = "Beginner"; }
+    ViewData["Title"] = "Workout Hub";
+}
+
+<style>
+    .tab-btn {
+        border: 1px solid rgba(255,255,255,0.1);
+        background: rgba(255,255,255,0.05);
+        padding: 10px 20px;
+        border-radius: 8px;
+        cursor: pointer;
+        color: var(--text-secondary);
+        transition: all 0.3s;
+    }
+    .tab-btn:hover {
+        background: rgba(255,255,255,0.1);
+        color: var(--text-primary);
+    }
+    .tab-btn.active {
+        background: var(--accent-neon);
+        color: #000;
+        border-color: var(--accent-neon);
+        font-weight: bold;
+    }
+    .chat-box {
+        height: 180px; 
+        overflow-y: auto; 
+        background: rgba(255,255,255,0.02);
+        border: 1px solid rgba(255,255,255,0.1);
+    }
+    /* Scrollbar for chat */
+    .chat-box::-webkit-scrollbar { width: 6px; }
+    .chat-box::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 3px; }
+</style>
+
+<div class="container my-4">
+    <!-- Welcome Message -->
+    <div class="d-flex justify-content-between align-items-center mb-5">
+        <div>
+            <h2 class="fw-bold mb-1">Welcome back, <span class="text-primary">Athlete!</span> 💪</h2>
+            <p class="text-muted fs-5 mb-2">You're doing great! Stay consistent and keep pushing.</p>
+            <div class="btn-group mt-2 shadow-sm">
+                <button id="btnHomeWorkout" class="btn btn-primary px-4 fw-bold">🏠 Home Workout</button>
+                <button id="btnGymWorkout" class="btn btn-outline-primary px-4 fw-bold">🏋️ Gym Workout</button>
+            </div>
+        </div>
+        <div class="text-end d-flex gap-4">
+            <div>
+                <h5 class="text-muted mb-1">🔥 Daily Streak</h5>
+                <h2><span class="badge bg-warning px-4 py-2 text-dark rounded-pill"><span id="streakCount">@ViewBag.User.DailyStreak</span> Days</span></h2>
+            </div>
+            <div>
+                <h5 class="text-muted mb-1">Current Level</h5>
+                <h2><span class="badge bg-primary px-4 py-2 text-dark rounded-pill">@level</span></h2>
+            </div>
+        </div>
+    </div>
+
+    <!-- Weekly Tabs -->
+    <div class="d-flex flex-wrap gap-2 mb-5">
+        <div class="tab-btn" id="tab-1" onclick="selectDay(this, 1)">Mon <br /><small>Chest & Triceps</small></div>
+        <div class="tab-btn" id="tab-2" onclick="selectDay(this, 2)">Tue <br /><small>Back & Biceps</small></div>
+        <div class="tab-btn" id="tab-3" onclick="selectDay(this, 3)">Wed <br /><small>Leg Day</small></div>
+        <div class="tab-btn" id="tab-4" onclick="selectDay(this, 4)">Thu <br /><small>Shoulders</small></div>
+        <div class="tab-btn" id="tab-5" onclick="selectDay(this, 5)">Fri <br /><small>Core & Cardio</small></div>
+        <div class="tab-btn text-success" id="tab-6" onclick="selectDay(this, 6)">Sat <br /><small>Rest Day</small></div>
+        <div class="tab-btn" id="tab-7" onclick="selectDay(this, 7)">Sun <br /><small>Full Body</small></div>
+    </div>
+
+    <div class="row">
+        <!-- Main Workout Section -->
+        <div class="col-lg-7 mb-4">
+            <div class="card shadow-lg border-0 h-100" style="background: rgba(255,255,255,0.03);">
+                <div class="card-body p-5">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="text-primary fw-bold text-uppercase tracking-wide">Today's Workout</h5>
+                    </div>
+                    
+                    <h2 class="fw-bold display-5 mb-2" id="dayTitle">Mon: Chest & Triceps</h2>
+                    <h5 class="text-muted mb-4">Full Body Strength Focus</h5>
+                    
+                    <div class="p-4 rounded mb-5" style="background: rgba(0,255,136,0.05); border: 1px solid rgba(0,255,136,0.1);">
+                        <p class="fs-5 mb-0" id="dayRoutine">
+                            <strong>Routine:</strong> Push-ups, Squats, Mountain Climbers, Planks (4 Sets)
+                        </p>
+                    </div>
+
+                    <!-- Timer -->
+                    <div class="text-center my-5 py-4 border rounded" style="background: rgba(0,0,0,0.2); border-color: rgba(255,255,255,0.05) !important;">
+                        <h1 id="timerDisplay" class="display-1 text-white fw-bold mb-0" style="font-variant-numeric: tabular-nums;">00:45</h1>
+                        <h5 class="text-primary mt-2 mb-4" id="timerStatus">Ready to begin</h5>
+                        
+                        <div class="d-flex justify-content-center gap-3">
+                            <button id="btnStartTimer" class="btn btn-primary btn-lg px-5 rounded-pill">Start Workout</button>
+                            <button id="btnResetTimer" class="btn btn-outline-secondary btn-lg px-4 rounded-pill">Reset</button>
+                        </div>
+                    </div>
+
+                    <button id="btnFinishWorkout" class="btn btn-outline-secondary btn-lg w-100 py-3 rounded-pill fw-bold" disabled>
+                        🔒 Complete Timer to Finish Workout
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Right Section: Nutrition, Hydration & AI Chat -->
+        <div class="col-lg-5">
+            
+            <!-- Hydration Tracker -->
+            <div class="card border-0 shadow-sm mb-4" style="background: rgba(13, 202, 240, 0.05);">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h4 class="fw-bold m-0 text-info">💧 Hydration Tracker</h4>
+                        <span class="badge bg-info text-dark fs-5 rounded-pill"><span id="waterGlasses">0</span> / 8</span>
+                    </div>
+                    <p class="text-muted mb-4">Stay hydrated! Target: 2.5L daily.</p>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-info text-dark btn-lg flex-fill fw-bold" id="btnAddWater">+ Log Glass</button>
+                        <button class="btn btn-outline-secondary btn-lg" id="btnResetWater">Reset</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Nutrition -->
+            <div class="card border-0 shadow-sm mb-4 p-4" style="background: rgba(255,255,255,0.03);">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h4 class="fw-bold mb-0">🥗 Nutrition</h4>
+                    <div class="d-flex gap-3">
+                        <button class="btn btn-success px-4" id="btnVeg">Veg</button>
+                        <button class="btn btn-outline-danger px-4" id="btnNonVeg">Non-Veg</button>
+                    </div>
+                </div>
+                <hr />
+                <div id="nutritionContent">
+                    <p class="text-muted mb-2"><b>Focus:</b> Fuel your body for today's workout.</p>
+                    <ul class="text-secondary ps-3" id="dietList">
+                        <li class="mb-2"><strong>Breakfast:</strong> <span id="dietBreakfast"></span></li>
+                        <li class="mb-2"><strong>Lunch:</strong> <span id="dietLunch"></span></li>
+                        <li class="mb-2"><strong>Evening Snack:</strong> <span id="dietSnack"></span></li>
+                        <li class="mb-2"><strong>Dinner:</strong> <span id="dietDinner"></span></li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Notifications Column -->
+            <div class="card border-0 shadow-sm mb-4 p-4" style="background: rgba(255,193,7,0.05);">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h4 class="fw-bold mb-0 text-warning">🔔 Notifications</h4>
+                    <button class="btn btn-sm btn-outline-secondary" onclick="clearNotifications()">Clear</button>
+                </div>
+                <hr />
+                <div class="notification-box" style="height: 180px; overflow-y: auto; overflow-x: hidden;">
+                    <ul class="list-group list-group-flush" id="notificationList">
+                        <li class="list-group-item bg-transparent text-muted px-0">No new notifications.</li>
+                    </ul>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // --- HYDRATION TRACKER ---
+            let waterCount = 0;
+            const waterDisplay = document.getElementById("waterGlasses");
+            const btnAddWater = document.getElementById("btnAddWater");
+            const btnResetWater = document.getElementById("btnResetWater");
+
+            btnAddWater.addEventListener("click", function () {
+                if (waterCount < 8) {
+                    waterCount++;
+                    waterDisplay.innerText = waterCount;
+                }
+                if (waterCount === 8) {
+                    alert("🎉 Daily hydration goal achieved! (8/8 glasses)");
+                }
+            });
+
+            btnResetWater.addEventListener("click", function () {
+                waterCount = 0;
+                waterDisplay.innerText = "0";
+            });
+
+            // --- TIMER SYSTEM ---
+            let timerInterval = null;
+            let levelStr = '@level';
+            let initialTime = 45; // Default 45 sec
+            
+            if (levelStr === 'Beginner') {
+                initialTime = 35 * 60; // 35 minutes
+            } else if (levelStr === 'Intermediate') {
+                initialTime = 45 * 60; // 45 minutes
+            } else if (levelStr === 'Pro') {
+                initialTime = 60 * 60; // 60 minutes
+            }
+            
+            let timeLeft = initialTime;
+            let isRunning = false;
+            const timerDisplay = document.getElementById("timerDisplay");
+            const timerStatus = document.getElementById("timerStatus");
+            const btnStartTimer = document.getElementById("btnStartTimer");
+            const btnResetTimer = document.getElementById("btnResetTimer");
+            const btnVeg = document.getElementById("btnVeg");
+            const btnNonVeg = document.getElementById("btnNonVeg");
+
+            function updateTimerDisplay() {
+                let min = Math.floor(timeLeft / 60);
+                let sec = timeLeft % 60;
+                timerDisplay.innerText = (min < 10 ? "0" : "") + min + ":" + (sec < 10 ? "0" : "") + sec;
+            }
+            
+            // Set initial display
+            updateTimerDisplay();
+
+            btnStartTimer.addEventListener("click", function () {
+                if (!isRunning) {
+                    isRunning = true;
+                    btnStartTimer.innerText = "Pause Workout";
+                    btnStartTimer.className = "btn btn-warning btn-lg px-5 rounded-pill text-dark";
+                    timerStatus.innerText = "Workout in Progress...";
+
+                    timerInterval = setInterval(() => {
+                        if (timeLeft > 0) {
+                            timeLeft--;
+                            updateTimerDisplay();
+                        } else {
+                            clearInterval(timerInterval);
+                            isRunning = false;
+                            
+                            btnStartTimer.innerText = "Workout Complete!";
+                            btnStartTimer.className = "btn btn-success btn-lg px-5 rounded-pill";
+                            btnStartTimer.disabled = true;
+                            timerStatus.innerText = "Great job!";
+                            
+                            // Enable the Finish button
+                            const btnFinish = document.getElementById("btnFinishWorkout");
+                            btnFinish.disabled = false;
+                            btnFinish.classList.replace("btn-outline-secondary", "btn-success");
+                            btnFinish.innerText = "✔️ Finish Workout & Update Streak";
+                            
+                            alert("Timer Complete! You can now finish your workout and update your streak.");
+                        }
+                    }, 1000);
+                } else {
+                    clearInterval(timerInterval);
+                    isRunning = false;
+                    btnStartTimer.innerText = "Resume Workout";
+                    btnStartTimer.className = "btn btn-primary btn-lg px-5 rounded-pill";
+                    timerStatus.innerText = "Paused";
+                }
+            });
+
+            btnResetTimer.addEventListener("click", function () {
+                clearInterval(timerInterval);
+                isRunning = false;
+                timeLeft = initialTime;
+                updateTimerDisplay();
+                btnStartTimer.innerText = "Start Workout";
+                btnStartTimer.className = "btn btn-primary btn-lg px-5 rounded-pill";
+                timerStatus.innerText = "Ready to begin";
+            });
+
+            // --- STREAK & PROGRESS ---
+            const streakDisplay = document.getElementById("streakCount");
+
+            const btnFinishWorkout = document.getElementById("btnFinishWorkout");
+            btnFinishWorkout.addEventListener("click", function () {
+                fetch('/Workout/CompleteWorkout', { 
+                    method: 'POST',
+                    credentials: 'same-origin'
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            if (streakDisplay) {
+                                streakDisplay.innerText = data.newStreak;
+                            }
+                            
+                            // Visual feedback that the button was clicked
+                            btnFinishWorkout.innerText = "✔️ Workout Finished!";
+                            btnFinishWorkout.classList.replace("btn-success", "btn-outline-secondary");
+                            btnFinishWorkout.disabled = true;
+                            
+                            alert("Great job! Workout completed. Your streak is now " + data.newStreak + " day(s) and you've completed " + data.totalCompleted + " workouts!");
+                        } else {
+                            alert("Failed to save workout. Please try again.");
+                        }
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        alert("Error communicating with server.");
+                    });
+            });
+
+
+        });
+
+        const currentLevel = '@level';
+        let currentDay = 1;
+        let currentDietType = 'veg'; // 'veg' or 'nonVeg'
+
+        const dietPlans = {
+            "Beginner": {
+                1: { veg: ["Poha + Milk", "Roti + Dal + Bhaji", "Fruit", "Roti + Bhaji"], nonVeg: ["2 Eggs + Roti", "Rice + Dal + Chicken", "Fruit", "Roti + Bhaji"] },
+                2: { veg: ["Upma + Curd", "Rice + Dal + Salad", "Roasted Chana", "Roti + Paneer"], nonVeg: ["Omelette + Poha", "Roti + Dal + Chicken", "Roasted Chana", "Rice + Fish"] },
+                3: { veg: ["Besan Chilla", "Roti + Dal + Bhaji", "Banana", "Khichdi + Curd"], nonVeg: ["2 Boiled Eggs + Toast", "Rice + Bhaji + Chicken", "Banana", "Roti + Dal"] },
+                4: { veg: ["Oats + Fruit", "Rice + Dal + Bhaji", "Sprouts", "Roti + Paneer"], nonVeg: ["Egg Bhurji + Roti", "Roti + Dal + Fish", "Sprouts", "Rice + Chicken"] },
+                5: { veg: ["Poha + Sprouts", "Roti + Dal + Salad", "Buttermilk", "Roti + Bhaji"], nonVeg: ["Omelette + Poha", "Rice + Dal + Bhaji", "Buttermilk", "Roti + Chicken"] },
+                6: { veg: ["Upma + Curd", "Rice + Dal + Bhaji", "Fruit", "Roti + Soya"], nonVeg: ["2 Eggs + Upma", "Roti + Dal + Chicken", "Fruit", "Rice + Fish"] },
+                7: { veg: ["Idli + Sambar", "Roti + Dal + Bhaji", "Roasted Chana", "Khichdi"], nonVeg: ["Boiled Eggs + Roti", "Rice + Dal + Bhaji", "Chana", "Roti + Chicken"] }
+            },
+            "Intermediate": {
+                1: { veg: ["Poha + Milk", "Roti + Dal + Bhaji", "Fruit", "Roti + Bhaji"], nonVeg: ["2 Eggs + Roti", "Rice + Dal + Chicken", "Fruit", "Roti + Bhaji"] },
+                2: { veg: ["Upma + Curd", "Rice + Dal + Salad", "Roasted Chana", "Roti + Paneer"], nonVeg: ["Omelette + Poha", "Roti + Dal + Chicken", "Roasted Chana", "Rice + Fish"] },
+                3: { veg: ["Besan Chilla", "Roti + Dal + Bhaji", "Banana", "Khichdi + Curd"], nonVeg: ["2 Boiled Eggs + Toast", "Rice + Bhaji + Chicken", "Banana", "Roti + Dal"] },
+                4: { veg: ["Oats + Fruit", "Rice + Dal + Bhaji", "Sprouts", "Roti + Paneer"], nonVeg: ["Egg Bhurji + Roti", "Roti + Dal + Fish", "Sprouts", "Rice + Chicken"] },
+                5: { veg: ["Poha + Sprouts", "Roti + Dal + Salad", "Buttermilk", "Roti + Bhaji"], nonVeg: ["Omelette + Poha", "Rice + Dal + Bhaji", "Buttermilk", "Roti + Chicken"] },
+                6: { veg: ["Upma + Curd", "Rice + Dal + Bhaji", "Fruit", "Roti + Soya"], nonVeg: ["2 Eggs + Upma", "Roti + Dal + Chicken", "Fruit", "Rice + Fish"] },
+                7: { veg: ["Idli + Sambar", "Roti + Dal + Bhaji", "Roasted Chana", "Khichdi"], nonVeg: ["Boiled Eggs + Roti", "Rice + Dal + Bhaji", "Chana", "Roti + Chicken"] }
+            },
+            "Pro": {
+                1: { veg: ["Poha + Milk", "Roti + Dal + Bhaji", "Fruit", "Roti + Bhaji"], nonVeg: ["2 Eggs + Roti", "Rice + Dal + Chicken", "Fruit", "Roti + Bhaji"] },
+                2: { veg: ["Upma + Curd", "Rice + Dal + Salad", "Roasted Chana", "Roti + Paneer"], nonVeg: ["Omelette + Poha", "Roti + Dal + Chicken", "Roasted Chana", "Rice + Fish"] },
+                3: { veg: ["Besan Chilla", "Roti + Dal + Bhaji", "Banana", "Khichdi + Curd"], nonVeg: ["2 Boiled Eggs + Toast", "Rice + Bhaji + Chicken", "Banana", "Roti + Dal"] },
+                4: { veg: ["Oats + Fruit", "Rice + Dal + Bhaji", "Sprouts", "Roti + Paneer"], nonVeg: ["Egg Bhurji + Roti", "Roti + Dal + Fish", "Sprouts", "Rice + Chicken"] },
+                5: { veg: ["Poha + Sprouts", "Roti + Dal + Salad", "Buttermilk", "Roti + Bhaji"], nonVeg: ["Omelette + Poha", "Rice + Dal + Bhaji", "Buttermilk", "Roti + Chicken"] },
+                6: { veg: ["Upma + Curd", "Rice + Dal + Bhaji", "Fruit", "Roti + Soya"], nonVeg: ["2 Eggs + Upma", "Roti + Dal + Chicken", "Fruit", "Rice + Fish"] },
+                7: { veg: ["Idli + Sambar", "Roti + Dal + Bhaji", "Roasted Chana", "Khichdi"], nonVeg: ["Boiled Eggs + Roti", "Rice + Dal + Bhaji", "Chana", "Roti + Chicken"] }
+            }
+        };
+
+        function updateDiet() {
+            let levelPlans = dietPlans[currentLevel];
+            if (!levelPlans) levelPlans = dietPlans["Beginner"];
+            
+            const dayPlan = levelPlans[currentDay];
+            const meals = dayPlan[currentDietType];
+
+            document.getElementById("dietBreakfast").innerText = meals[0];
+            document.getElementById("dietLunch").innerText = meals[1];
+            document.getElementById("dietSnack").innerText = meals[2];
+            document.getElementById("dietDinner").innerText = meals[3];
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {
+            const btnVeg = document.getElementById("btnVeg");
+            const btnNonVeg = document.getElementById("btnNonVeg");
+            
+            btnVeg.addEventListener("click", () => {
+                currentDietType = "veg";
+                btnVeg.className = "btn btn-success px-4";
+                btnNonVeg.className = "btn btn-outline-danger px-4";
+                updateDiet();
+            });
+
+            btnNonVeg.addEventListener("click", () => {
+                currentDietType = "nonVeg";
+                btnNonVeg.className = "btn btn-danger px-4";
+                btnVeg.className = "btn btn-outline-success px-4";
+                updateDiet();
+            });
+        });
+
+        let currentWorkoutType = 'home'; // 'home' or 'gym'
+
+        const homeRoutines = {
+            "Beginner": {
+                1: { title: "Mon: Chest & Triceps (Home)", detail: "Knee Pushups, Chair Dips, Planks (3 Sets x 10 Reps)" },
+                2: { title: "Tue: Back & Biceps (Home)", detail: "Superman Holds, Water Bottle Curls, Deadbugs (3 Sets x 10 Reps)" },
+                3: { title: "Wed: Legs & Core (Home)", detail: "Bodyweight Squats, Forward Lunges, Crunches (3 Sets x 10 Reps)" },
+                4: { title: "Thu: Shoulders & Abs (Home)", detail: "Pike Pushups, Lateral Raises (water bottles), Leg Raises (3 Sets x 10 Reps)" },
+                5: { title: "Fri: Full Body Cardio (Home)", detail: "Jumping Jacks, High Knees, Mountain Climbers (3 Sets x 30 Secs)" },
+                6: { title: "Sat: Rest & Recovery (Home)", detail: "Active Recovery: Light Stretching & Yoga (15 Mins)" },
+                7: { title: "Sun: Endurance (Home)", detail: "2KM Jog / Brisk Walk & Core Stability Workout" }
+            },
+            "Intermediate": {
+                1: { title: "Mon: Chest & Triceps (Home)", detail: "Standard Pushups, Diamond Pushups, Tricep Dips, Planks (4 Sets x 15 Reps)" },
+                2: { title: "Tue: Back & Biceps (Home)", detail: "Bodyweight Rows (under table), Resistance Band Curls, Deadbugs (4 Sets x 15 Reps)" },
+                3: { title: "Wed: Legs & Core (Home)", detail: "Jump Squats, Reverse Lunges, Calf Raises, V-Ups (4 Sets x 15 Reps)" },
+                4: { title: "Thu: Shoulders & Abs (Home)", detail: "Handstand Pushup Holds, Band Lateral Raises, Russian Twists (4 Sets x 15 Reps)" },
+                5: { title: "Fri: Full Body HIIT (Home)", detail: "Burpees, Jumping Jacks, Mountain Climbers, Jump Squats (4 Sets x 45 Secs)" },
+                6: { title: "Sat: Rest & Recovery (Home)", detail: "Active Recovery: Foam Rolling & Deep Stretching (20 Mins)" },
+                7: { title: "Sun: Endurance (Home)", detail: "5KM Jog / Fast Walk & Core Stability Workout" }
+            },
+            "Pro": {
+                1: { title: "Mon: Chest & Triceps (Home)", detail: "Decline Pushups, Archer Pushups, Weighted Dips, Weighted Planks (5 Sets x 20 Reps)" },
+                2: { title: "Tue: Back & Biceps (Home)", detail: "Pull-ups (if bar available) or Weighted Rows, Strict Band Curls, Dragon Flags (5 Sets x 20 Reps)" },
+                3: { title: "Wed: Legs & Core (Home)", detail: "Pistol Squats, Jumping Lunges, Single-Leg Calf Raises, L-Sits (5 Sets x 20 Reps)" },
+                4: { title: "Thu: Shoulders & Abs (Home)", detail: "Strict Handstand Pushups, Heavy Band Raises, Weighted Russian Twists (5 Sets x 20 Reps)" },
+                5: { title: "Fri: Full Body Power (Home)", detail: "Strict Burpees, Tuck Jumps, Heavy Mountain Climbers, Sprinting (5 Sets x 60 Secs)" },
+                6: { title: "Sat: Rest & Recovery (Home)", detail: "Active Recovery: Advanced Mobility Work (30 Mins)" },
+                7: { title: "Sun: Endurance (Home)", detail: "10KM Run / Sprints & Advanced Core Workout" }
+            }
+        };
+
+        const gymRoutines = {
+            "Beginner": {
+                1: { title: "Mon: Chest & Triceps (Gym)", detail: "Machine Chest Press, Tricep Pushdowns, Crunches (3 Sets x 10 Reps)" },
+                2: { title: "Tue: Back & Biceps (Gym)", detail: "Lat Pulldown, Seated Cable Row, Dumbbell Curls (3 Sets x 10 Reps)" },
+                3: { title: "Wed: Legs & Core (Gym)", detail: "Leg Press, Leg Extensions, Lying Leg Curls (3 Sets x 10 Reps)" },
+                4: { title: "Thu: Shoulders & Abs (Gym)", detail: "Machine Shoulder Press, Lateral Raises, Planks (3 Sets x 10 Reps)" },
+                5: { title: "Fri: Full Body (Gym)", detail: "Goblet Squats, Kettlebell Swings, Rowing Machine (3 Sets x 10 Reps)" },
+                6: { title: "Sat: Rest & Recovery (Gym)", detail: "Active Recovery: Light Stretching in Gym Mat Area" },
+                7: { title: "Sun: Endurance (Gym)", detail: "Treadmill Walk/Jog (20 Mins), Cycling (15 Mins)" }
+            },
+            "Intermediate": {
+                1: { title: "Mon: Chest & Triceps (Gym)", detail: "Barbell Bench Press, Incline Dumbbell Press, Tricep Cable Pushdowns, Dips (4 Sets x 12 Reps)" },
+                2: { title: "Tue: Back & Biceps (Gym)", detail: "Pull-ups, Barbell Rows, Barbell Bicep Curls, Hammer Curls (4 Sets x 12 Reps)" },
+                3: { title: "Wed: Legs & Core (Gym)", detail: "Barbell Squats, Romanian Deadlifts, Leg Extensions, Weighted Crunches (4 Sets x 12 Reps)" },
+                4: { title: "Thu: Shoulders & Abs (Gym)", detail: "Overhead Barbell Press, Cable Lateral Raises, Cable Crunches (4 Sets x 12 Reps)" },
+                5: { title: "Fri: Full Body Power (Gym)", detail: "Deadlifts, Clean and Press, Box Jumps, Rowing Machine (4 Sets x 12 Reps)" },
+                6: { title: "Sat: Rest & Recovery (Gym)", detail: "Active Recovery: Foam Rolling & Dynamic Stretching" },
+                7: { title: "Sun: Endurance (Gym)", detail: "Stairmaster (20 Mins), Treadmill Sprints (15 Mins)" }
+            },
+            "Pro": {
+                1: { title: "Mon: Chest & Triceps (Gym)", detail: "Heavy Bench Press, Weighted Dips, Incline Flyes, Skull Crushers (5 Sets x 8 Reps)" },
+                2: { title: "Tue: Back & Biceps (Gym)", detail: "Heavy Deadlifts, Weighted Pull-ups, Heavy T-Bar Rows, Strict Preacher Curls (5 Sets x 8 Reps)" },
+                3: { title: "Wed: Legs & Core (Gym)", detail: "Heavy Back Squats, Front Squats, Heavy Leg Press, Weighted Hanging Leg Raises (5 Sets x 8 Reps)" },
+                4: { title: "Thu: Shoulders & Abs (Gym)", detail: "Heavy Overhead Press, Arnold Press, Heavy Cable Crunches, Ab Wheel Rollouts (5 Sets x 8 Reps)" },
+                5: { title: "Fri: Full Body Power (Gym)", detail: "Power Cleans, Snatches, Heavy Farmer's Walk, Sled Pushes (5 Sets x 5 Reps)" },
+                6: { title: "Sat: Rest & Recovery (Gym)", detail: "Active Recovery: Mobility & Sauna (45 Mins)" },
+                7: { title: "Sun: Endurance (Gym)", detail: "HIIT Sprints (30 Mins), Intense Stairmaster (20 Mins)" }
+            }
+        };
+
+        function updateRoutineDisplay() {
+            let routinesType = currentWorkoutType === 'home' ? homeRoutines : gymRoutines;
+            let levelRoutines = routinesType[currentLevel];
+            if (!levelRoutines) levelRoutines = routinesType["Beginner"];
+
+            document.getElementById("dayTitle").innerText = levelRoutines[currentDay].title;
+            document.getElementById("dayRoutine").innerHTML = "<strong>Routine:</strong> " + levelRoutines[currentDay].detail;
+        }
+
+        function renderNotifications() {
+            let history = JSON.parse(localStorage.getItem('AppNotificationsHistory') || '[]');
+            let listEl = document.getElementById('notificationList');
+            if (!listEl) return;
+            
+            if (history.length === 0) {
+                listEl.innerHTML = '<li class="list-group-item bg-transparent text-muted px-0 border-0">No new notifications.</li>';
+                return;
+            }
+
+            let html = '';
+            history.forEach(n => {
+                let icon = n.title.includes("Hydration") ? "💧" : "🔔";
+                html += `
+                    <li class="list-group-item bg-transparent text-white border-secondary px-0">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1 text-warning fw-bold">${icon} ${n.title}</h6>
+                            <small class="text-muted">${n.time}</small>
+                        </div>
+                        <p class="mb-1 small text-light">${n.message}</p>
+                    </li>
+                `;
+            });
+            listEl.innerHTML = html;
+        }
+
+        function clearNotifications() {
+            localStorage.removeItem('AppNotificationsHistory');
+            renderNotifications();
+        }
+
+        function selectDay(element, dayNum) {
+            document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+            element.classList.add("active");
+            
+            currentDay = dayNum;
+            updateRoutineDisplay();
+            updateDiet();
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {
+            const btnHomeWorkout = document.getElementById("btnHomeWorkout");
+            const btnGymWorkout = document.getElementById("btnGymWorkout");
+
+            btnHomeWorkout.addEventListener("click", () => {
+                currentWorkoutType = 'home';
+                btnHomeWorkout.className = "btn btn-primary px-4 fw-bold";
+                btnGymWorkout.className = "btn btn-outline-primary px-4 fw-bold";
+                updateRoutineDisplay();
+            });
+
+            btnGymWorkout.addEventListener("click", () => {
+                currentWorkoutType = 'gym';
+                btnGymWorkout.className = "btn btn-primary px-4 fw-bold";
+                btnHomeWorkout.className = "btn btn-outline-primary px-4 fw-bold";
+                updateRoutineDisplay();
+            });
+        });
+
+        // Initialize on load
+        document.addEventListener("DOMContentLoaded", function () {
+            
+            // Load persistent notifications
+            renderNotifications();
+
+            // Determine real day of week (0=Sun, 1=Mon, ..., 6=Sat)
+            let realDayIndex = new Date().getDay();
+            let appDayNumber = realDayIndex === 0 ? 7 : realDayIndex;
+            
+            // Disable other tabs and auto-select today
+            for (let i = 1; i <= 7; i++) {
+                let tab = document.getElementById("tab-" + i);
+                if (i !== appDayNumber) {
+                    tab.style.pointerEvents = "none";
+                    tab.style.opacity = "0.4";
+                }
+            }
+            
+            let todayTab = document.getElementById("tab-" + appDayNumber);
+            selectDay(todayTab, appDayNumber);
+        });
+    </script>
+}
